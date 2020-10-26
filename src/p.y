@@ -2250,8 +2250,11 @@ repeat          : /* EMPTY */ {
                   }
                 ;
 
-action          : ALERT {
+action          : ALERT repeat{
                         $<number>$ = Action_Alert;
+                  }
+                | ALERT {
+                       $<number>$ = Action_Alert;
                   }
                 | EXEC argumentlist repeat {
                         $<number>$ = Action_Exec;
@@ -2281,6 +2284,9 @@ action1         : action {
                       repeat = 0;
                       command1 = command;
                       command = NULL;
+                    } else if ($<number>1 == Action_Alert) {
+                        repeat1 = repeat;
+                        repeat = 0;
                     }
                   }
                 ;

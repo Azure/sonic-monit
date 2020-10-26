@@ -336,7 +336,8 @@ static void _handleEvent(Service_T S, Event_T E) {
                 if (E->state != State_Init || E->state_map & 0x1) {
                         if (E->state == State_Succeeded || E->state == State_ChangedNot || E->id == Event_Instance || E->id == Event_Action)
                                 LogInfo("'%s' %s\n", S->name, E->message);
-                        else
+                        /* Send Error log if state change to failed for 1st time or if we have repeat clause then do periodically */
+                        else if ((E->state_changed) || (E->state == State_Failed && E->action->failed->repeat && E->count % E->action->failed->repeat == 0))
                                 LogError("'%s' %s\n", S->name, E->message);
                 }
                 if (E->state == State_Init)
