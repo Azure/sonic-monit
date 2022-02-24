@@ -1,0 +1,14 @@
+#!/usr/bin/make -f
+
+%:
+	dh $@ --with autoreconf
+
+override_dh_auto_configure:
+	dh_auto_configure -- \
+		--sysconfdir=/etc/monit
+
+override_dh_fixperms:
+	dh_fixperms
+	chmod 600 debian/monit/etc/monit/monitrc
+	chmod 0700 debian/monit/var/lib/monit/events
+

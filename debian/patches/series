@@ -1,0 +1,5 @@
+ 01_spelling.patch
+ 05_monitrc.patch
+ 06_ssl.patch
+ 07_cross.patch
+ 11_enable_hurd.patch
