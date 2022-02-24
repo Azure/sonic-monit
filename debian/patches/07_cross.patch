@@ -1,0 +1,21 @@
+Description: Fix build/host confusion
+Author: Helmut Grohne <helmut@subdivi.de>
+Forwarded: no
+
+---
+ configure.ac |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+--- a/configure.ac
++++ b/configure.ac
+@@ -886,8 +886,8 @@ then
+                                    $maindir/lib64/openssl \
+                                    $maindir/lib64/ssl \
+                                    $maindir/ssl/lib64 \
+-                                   $maindir/lib/${build} \
+-                                   $maindir/lib/${build_alias}; do
++                                   $maindir/lib/${host} \
++                                   $maindir/lib/${host_alias}; do
+                             checkssllibdirdynamic $dir && break 2
+                         done
+                     done

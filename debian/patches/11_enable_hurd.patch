@@ -1,0 +1,148 @@
+Description: Support for GNU/Hurd
+Author: Sergey B Kirpichev <skirpichev@gmail.com>
+Forwarded: https://bitbucket.org/tildeslash/monit/pull-request/3
+
+ 1. Enable building for GNU/Hurd in configure.ac
+ 2. Fix MAX_PATH use cases
+ 3. Implement src/{device,process}/sysdep_HURD.c
+
+---
+ configure                            |    6 +++++-
+ configure.ac                         |    5 +++++
+ libmonit/configure                   |    5 +++++
+ libmonit/configure.ac                |    4 ++++
+ libmonit/src/Config.h                |    6 ++++++
+ libmonit/src/system/Link.c           |    2 ++
+ libmonit/src/system/os/hurd/Link.inc |    1 +
+ src/device/sysdep_HURD.c             |    1 +
+ src/monit.h                          |    5 +++++
+ src/process/sysdep_HURD.c            |   20 ++++++++++++++++++++
+ 10 files changed, 54 insertions(+), 1 deletion(-)
+
+--- a/configure
++++ b/configure
+@@ -13962,7 +13962,11 @@ then
+    LIBS="$LIBS -lodm -lperfstat -lm"
+ 
+ $as_echo "#define HAVE_CPU_WAIT 1" >>confdefs.h
+-
++elif test "$architecture" = "GNU"
++then
++   ARCH="HURD"
++   CFLAGS="$CFLAGS -D _REENTRANT"
++   LDFLAGS="$LDFLAGS -rdynamic"
+ else
+    { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: Architecture not supported: ${architecture}" >&5
+ $as_echo "$as_me: WARNING: Architecture not supported: ${architecture}" >&2;}
+--- a/configure.ac
++++ b/configure.ac
+@@ -573,6 +573,11 @@ then
+    CFLAGS="$CFLAGS -D_THREAD_SAFE -D_REENTRANT"
+    LIBS="$LIBS -lodm -lperfstat -lm"
+    AC_DEFINE([HAVE_CPU_WAIT], [1], [Define to 1 if CPU wait information is available.])
++elif test "$architecture" = "GNU"
++then
++   ARCH="HURD"
++   CFLAGS="$CFLAGS -D _REENTRANT"
++   LDFLAGS="$LDFLAGS -rdynamic"
+ else
+    AC_MSG_WARN([Architecture not supported: ${architecture}])
+    CFLAGS="$CFLAGS -D _REENTRANT"
+--- a/libmonit/configure
++++ b/libmonit/configure
+@@ -12345,6 +12345,11 @@ then
+ $as_echo "#define AIX 1" >>confdefs.h
+ 
+    LIBS="$LIBS -lcfg -lodm -lperfstat"
++elif test "$architecture" = "GNU"
++then
++    CFLAGS="$CFLAGS -D _REENTRANT"
++
++$as_echo "#define HURD 1" >>confdefs.h
+ else
+    as_fn_error $? "Architecture not supported: ${architecture}" "$LINENO" 5
+ fi
+--- a/libmonit/configure.ac
++++ b/libmonit/configure.ac
+@@ -269,6 +269,10 @@ then
+    CFLAGS="$CFLAGS -D_THREAD_SAFE -D_REENTRANT"
+    AC_DEFINE([AIX], 1, [Define to 1 if the system is AIX])
+    LIBS="$LIBS -lcfg -lodm -lperfstat"
++elif test "$architecture" = "GNU"
++then
++   CFLAGS="$CFLAGS -D _REENTRANT"
++   AC_DEFINE([HURD], 1, [Define to 1 if the system is Hurd])
+ else
+    AC_MSG_ERROR([Architecture not supported: ${architecture}])
+ fi
+--- /dev/null
++++ b/src/device/sysdep_HURD.c
+@@ -0,0 +1 @@
++#include "sysdep_LINUX.c"
+--- /dev/null
++++ b/src/process/sysdep_HURD.c
+@@ -0,0 +1,20 @@
++#include "config.h"
++
++#ifdef HAVE_UNISTD_H
++#include <unistd.h>
++#endif
++
++/**
++ * On GNU/Hurd procps usually launched with -c (linux-compatibility switch):
++ * http://lists.debian.org/debian-hurd/2012/10/msg00070.html
++ * so, sysconf(_SC_CLK_TCK_) is useless here right now...
++ */
++#ifndef HZ
++# ifndef HURD
++#  define HZ sysconf(_SC_CLK_TCK)
++# else
++#  define HZ 100
++# endif
++#endif
++
++#include "sysdep_LINUX.c"
+--- a/libmonit/src/Config.h
++++ b/libmonit/src/Config.h
+@@ -125,6 +125,12 @@ typedef enum {
+ #define true  1
+ #endif
+ 
++/**
++ * For systems without PATH_MAX define it with a resonable value
++ */
++#ifndef PATH_MAX
++#define PATH_MAX 1024
++#endif
+ 
+ #endif
+ 
+--- a/src/monit.h
++++ b/src/monit.h
+@@ -392,6 +392,11 @@ Sigfunc *signal(int signo, Sigfunc * fun
+ #define SIG_ERR ((Sigfunc *)-1)
+ #endif
+ 
++/* For systems without PATH_MAX define it with a resonable value */
++
++#ifndef PATH_MAX
++#define PATH_MAX 1024
++#endif
+ 
+ /** ------------------------------------------------- General purpose macros */
+ 
+--- /dev/null
++++ b/libmonit/src/system/os/hurd/Link.inc
+@@ -0,0 +1 @@
++#include "../linux/Link.inc"
+--- a/libmonit/src/system/Link.c
++++ b/libmonit/src/system/Link.c
+@@ -161,6 +161,8 @@ static void _updateValue(LinkData_T *dat
+ #include "os/solaris/Link.inc"
+ #elif defined AIX
+ #include "os/aix/Link.inc"
++#elif defined HURD
++#include "os/hurd/Link.inc"
+ #endif
+ 
+ 

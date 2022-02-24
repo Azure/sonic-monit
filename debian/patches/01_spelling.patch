@@ -1,0 +1,36 @@
+Description: Spelling fixes from lintian
+Author: Sergey B Kirpichev <skirpichev@gmail.com>
+Forwarded: no
+
+---
+ doc/monit.pod            |    4 ++--
+ src/protocols/memcache.c |    2 +-
+ 2 files changed, 3 insertions(+), 3 deletions(-)
+
+--- a/doc/monit.pod
++++ b/doc/monit.pod
+@@ -1496,11 +1496,11 @@ won't try to start the HA group also. Ev
+ on H1 before it crashed, as HA is running on H2 now.
+ 
+ In I<laststate> mode, a service's monitoring state is persistent across
+-reboot. For instance, if a service was started before reboot, it willl
++reboot. For instance, if a service was started before reboot, it will
+ be started after reboot. If it was stopped before reboot, it will
+ not be started after and so on.
+ 
+-The default ONREBOOT START mode can be overriden globally:
++The default ONREBOOT START mode can be overridden globally:
+ 
+   SET ONREBOOT <START | NOSTART | LASTSTATE>
+ 
+--- a/src/protocols/memcache.c
++++ b/src/protocols/memcache.c
+@@ -112,7 +112,7 @@ void check_memcache(Socket_T socket) {
+                         THROW(IOException, "MEMCACHELEN: Invalid response code -- Key exists");
+                         break;
+                 default:
+-                        THROW(IOException, "MEMCACHELEN: Unknow response code %u -- error occurred", status);
++                        THROW(IOException, "MEMCACHELEN: Unknown response code %u -- error occurred", status);
+                         break;
+         }
+ }
